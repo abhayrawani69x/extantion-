@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 320px;
+      min-height: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .section {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+
+    label span.val {
+      color: #7aa2f7;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin-bottom: 8px;
+      accent-color: #7aa2f7;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      margin-bottom: 6px;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-detect {
+      background: #2a2a2a;
+      color: #e0e0e0;
+      border: 1px solid #3a3a3a;
+    }
+    .btn-detect:hover:not(:disabled) { background: #333; }
+
+    .btn-start {
+      background: #1a5c1a;
+      color: #fff;
+    }
+    .btn-start:hover:not(:disabled) { background: #1e7a1e; }
+
+    .btn-stop {
+      background: #7a1a1a;
+      color: #fff;
+    }
+    .btn-stop:hover:not(:disabled) { background: #a02020; }
+
+    .status-box {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .status-box .label {
+      color: #666;
+    }
+
+    .status-box .value {
+      color: #e0e0e0;
+      font-weight: 600;
+    }
+
+    .status-box .message {
+      color: #7aa2f7;
+      margin-top: 4px;
+      font-size: 11px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #222;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #7aa2f7;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .log-area {
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      line-height: 1.5;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .log-area .log-entry { margin-bottom: 2px; }
+    .log-area .log-ok { color: #4caf50; }
+    .log-area .log-warn { color: #ff9800; }
+    .log-area .log-err { color: #f44336; }
+    .log-area .log-info { color: #7aa2f7; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>Grid Video Downloader</h1>
+  <p class="subtitle">Click grid items → download video+thumb → back → next</p>
+
+  <!-- Settings -->
+  <div class="section">
+    <div class="section-title">Settings</div>
+    <label>
+      Delay between items
+      <span class="val" id="delayVal">2.0s</span>
+    </label>
+    <input type="range" id="delayRange" min="0.5" max="8" step="0.5" value="2">
+    <label>
+      Delay after going back
+      <span class="val" id="backDelayVal">1.5s</span>
+    </label>
+    <input type="range" id="backDelayRange" min="0.5" max="5" step="0.5" value="1.5">
+    <label>
+      Max pages
+      <span class="val" id="maxPagesVal">10</span>
+    </label>
+    <input type="range" id="maxPagesRange" min="1" max="50" step="1" value="10">
+  </div>
+
+  <!-- Actions -->
+  <div class="section">
+    <div class="section-title">Actions</div>
+    <button class="btn btn-detect" id="btnDetect">Find Grid Items</button>
+    <button class="btn btn-start" id="btnStart" disabled>Start Automation</button>
+    <button class="btn btn-stop hidden" id="btnStop">Stop Automation</button>
+  </div>
+
+  <!-- Status -->
+  <div class="section">
+    <div class="section-title">Status</div>
+    <div class="status-box" id="statusBox">
+      <div><span class="label">State: </span><span class="value" id="statusState">Idle</span></div>
+      <div><span class="label">Progress: </span><span class="value" id="statusProgress">—</span></div>
+      <div><span class="label">Page: </span><span class="value" id="statusPage">—</span></div>
+      <div class="message" id="statusMessage"></div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+    </div>
+    <div class="log-area" id="logArea"></div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
